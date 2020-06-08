@@ -1,4 +1,4 @@
-# Q-Newton-method
+# A New Q-Newton's method avoiding saddle points
 
 ### This repository is accompanying with [paper](https://arxiv.org/pdf/2006.01512.pdf):
 ### A modification of quasi-Newton's methods helping to avoid saddle points, 
