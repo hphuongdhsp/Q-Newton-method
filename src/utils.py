@@ -94,31 +94,3 @@ def cutoff(t):
  
 ###########
 
-#dimNN=2
-#x1=np.array([0,-0.99998925, 2.00001188])
-#x2=np.array([0.99998925, 2.00001188])
-#x3=SignedCompatibility(x1,x2,dimNN)
-#print(x3)
-
-#dim=2
-#A=np.array([[1,2],[2,1]])
-#print(A)
-#x=np.array([1,2])
-#print(NegativeOrthogonalDecomposition(A,x,dim))
-
-#A=np.array([1,2,-5])
-#B=np.array([[-23,-61,40],[-61,-39.5,155],[40,155,-50]])
-#r=L2Norm2(A,3)
-
-#D=r*np.identity(3,dtype=float)-2*B
-
-#print(B)
-#print(D)
-#print(np.dot(D,D))
-#C=np.array([[0,0,0],[0,1,0],[0,0,-2]])
-#E=np.dot(np.dot(D,C),D)
-#print(E)
-#print(la.det(B))
-#evals, evecs=la.eig(E)
-#print(evals)
-#print(evecs)

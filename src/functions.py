@@ -72,7 +72,7 @@ def f2Hessian(t):
     return tmp, tmp
     
     
-#print(f2Hessian(0.5))
+
 
 
 ########## Function f3 ########################
@@ -190,7 +190,7 @@ def f6Hessian(z):
 
 ######### Function f7 #######################
 ### We look at the function f7 = (x-1)^2+100(y-x^2)^2
-### The behaviour is the same as for the function f7'=0.01 f7.
+
 
 
 def f7(z):
@@ -297,7 +297,7 @@ def f11(t):
     # If coef<>0, then we have the PReLU function.
     # If coef = 0.01, then we have the Leaky ReLU function
     # If coef =-1, then we have the absolute function |t|.
-    # Because the second derivative of f11 is 0, we put it to be a non-zero small number ep, so that Newton's method or Local Backtracking GD can run.
+    
 
     if (t < 0):
         tmp = coef * t
@@ -381,7 +381,7 @@ def f13Hessian(z):
 ##################################################
 #print(f13Der(np.array([0.30703369, 0.30953365]))+f13Der(np.array([0.50952063, 0.50705168]))+f13Der(np.array([1.50938185, 1.50688189]))+f13Der(np.array([1.30689492, 1.30936386])))
 
-print(f13Der(np.array([1.00255712, 1.00006335]))+f13Der(np.array([6.33544128e-05, 2.55711999e-03])))
+
 
 
 ######## Function f14 ############################
@@ -504,7 +504,7 @@ def f18Hessian(t):
     return tmp, tmp
     
 ######### Function f19 ########################
-### We look at the function f(x,y)=x^2+y^2+4xy. Here to check the advantage of the orthogonal version of Signed correction of Newton's method
+### We look at the function f(x,y)=x^2+y^2+4xy.
 
 def f19(z):
     x, y = z
@@ -530,7 +530,7 @@ def f19Hessian(z):
     return tmp, w
 
 ######### Function f20 ########################
-### We look at the function f(x,y)=x^2+y^2+xy. Here to check the advantage of the orthogonal version of Signed correction of Newton's method
+### We look at the function f(x,y)=x^2+y^2+xy.
 
 def f20(z):
     x, y = z
@@ -557,7 +557,7 @@ def f20Hessian(z):
 
 
 ######### Function f21 ########################
-### We look at the function f(x,y)=x^2+y^2+2xy. Here to check the advantage of the orthogonal version of Signed correction of Newton's method
+### We look at the function f(x,y)=x^2+y^2+2xy.
 
 def f21(z):
     x, y = z
@@ -583,7 +583,7 @@ def f21Hessian(z):
     return tmp, w
 
 ######### Function f22 ########################
-### We look at the function f(x,y,t) a quadratic, with eigenvalues 0,1,-1. Here to check the advantage of the orthogonal version of Signed correction of Newton's method
+### We look at the function f(x,y,t) a quadratic, with eigenvalues 0,1,-1.
 
 def f22(z):
     x, y,t = z

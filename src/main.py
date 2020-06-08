@@ -90,7 +90,7 @@ for f in [expr1d, expr2d, expr3d, expr4d]:
 ### List of experiments to be done
 # Please see detailed initial points of each experiment in params.py
 exprList = [
-     'f1',  # f(t)=t^{1+gamma }, where 0<gamma <1.
+     #'f1',  # f(t)=t^{1+gamma }, where 0<gamma <1.
      #'f2',  # f(t)=|t|^(gamma), where 0< gamma <1
      #'f3',  # f3(x)=e^{-1/x^2}
      #'f4',  # f4(t)=t^3 sin (1/t)
@@ -103,7 +103,7 @@ exprList = [
     # 'f7',  # f7 = (x-1)^2+100(y-x^2)^2
     # 'f9',  # f9=x^3 sin (1/x) - y^3 sin(1/y)
     # 'f12',  # f12(x,y,s)=5*PReLU(x)+sign1*PReLU(y)+sign2*s. (sign1 ,sign2) to be either (\pm 1,0) or (0,\pm 1)
-    #'f10',  # f10= f7(x1,x2)+f7(x2,x3)+f7(x3,x4)
+    'f10',  # f10= f7(x1,x2)+f7(x2,x3)+f7(x3,x4)
     #'f13',  # f13= 100(y-|x|)^2+|1-x|
     #'f14',  # f14= 5|x|+y
     #'f15',  # f15= t^5 sin(1/t)
