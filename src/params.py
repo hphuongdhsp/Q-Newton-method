@@ -1,4 +1,5 @@
 import numpy as np
+from random import random
 
 """Default parameters for all gradient methods"""
 rtol = 1e-10  # error tolerance
@@ -39,7 +40,7 @@ stopCriterion = 0
 a = 1  # parameter for Rosenbrock function
 b = 100  # parameter for Rosenbrock function
 c6 = 1  # parameter for function f6
-c9 = -1  # parameter for function f9
+c9 = 1  # parameter for function f9
 gamma =0.3  # parameter for cost functions f1 and f2
 coef = 0  # parameter for function f11
 sign1 = 1  # parameter for function f12
@@ -74,16 +75,17 @@ z0f9 = np.array([-0.99998925, 2.00001188])
 z0f10 = np.array([-0.7020, 0.5342, -2.0101, 2.002])
 z0f11 = 1.00100012
 z0f12 = np.array([5.00001188, 1.00001188, 2.00001188])
-z0f13=np.array([-0.99998925, -2.00001188])
+#z0f13=np.array([-0.99998925, -2.00001188])
 #z0f13=np.array([-0.99998925, 2.00001188])
 #z0f13=np.array([-0.001, 0.1])
 #z0f13=np.array([0.55134554, 0.75134554])
+z0f13=np.array([0.55134554, -0.75134554])
 z0f14=np.array([-0.99998925, 2.00001188])
 z0f15 = 1.00001188
 z0f16C1=2.35287527
 z0f16C2=2.35284172
 z0f16C3=2.35283735
-z0f16C4=0.352836327
+z0f16C4=2.352836327
 z0f16C5=-2.352836323
 z0f17=0
 z0f18=1.00001188
@@ -91,18 +93,43 @@ z0f19=np.array([1, 2])
 z0f20=np.array([0.55134554, 0.75134554])
 z0f21=np.array([0.55134554, 0.75134554])
 z0f22 = np.array([0.00001188, 0.00002188, 0.00003188])
+#z0f23=np.array([-0.99998925, -2.00001188])
+#z0f23=np.array([-0.99998925, 2.00001188])
+#z0f23=np.array([-0.001, 0.1])
+#z0f23=np.array([0.55134554, 0.75134554])
+#z0f23=np.array([0.55134554, -0.75134554])
+
+z0f23=np.array([random() for _ in range(2)])
+
+####################### Parameters for higher dimensional examples
+#D=10
+#v0D=np.array([random() for _ in range(D)])
+
+#z0f24=np.array([-32+random()*64 for _ in range(D)])
+
+D=2
+v0D=np.array([random() for _ in range(D)])
+
+bound=1
+
+z0f24=np.array([-bound+random()*2*bound for _ in range(D)])
+
+
 
 #### Different methods. Can use # to deactivate certain methods.
 METHODS = [
             "NEWTON METHOD",
             "NEW Q NEWTON METHOD",
+            "RANDOM NEW Q NEWTON METHOD",
            "RANDOM NEWTON METHOD",
            "INERTIAL NEWTON METHOD",
-           "BFGS"
+           "BFGS",
+           #"LOCAL NEW Q NEWTON METHOD",
+           #"LOCAL NEWTON METHOD"
            ]
 
 #### The next three command lines are just for your convenience when you want to monitor should errors occur. Just delete the "#" and rerun the main.py file.
 
-#NIterate =100
+NIterate =50
 #stopCriterion =2
 #verbose = True

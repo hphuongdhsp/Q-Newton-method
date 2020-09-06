@@ -6,12 +6,18 @@ from Experiment import Experiment
 import params as pr
 
 
-"""Doing experiments using: Newton's method, BFGS, New Q-Newton's method, Random damping Newton's method and Inertial Newton's method """
+
+
+def main(): 
+
+    """Doing experiments using: Newton's method, BFGS, 
+    New Q-Newton's method, Random damping Newton's method and Inertial Newton's method 
+    """
 
 ### List of functions
 
 # 1D functions experiments
-expr1d = {
+    expr1d = {
     'f1': {'main': f1, 'derivative': f1Der, 'hessian': f1Hessian,
            'params': {'dim': 1, 'z0': pr.z0f1, 'v0': pr.v0D1}},
     'f2': {'main': f2, 'derivative': f2Der, 'hessian': f2Hessian,
@@ -49,7 +55,7 @@ expr1d = {
 }
 
 # 2D functions experiments
-expr2d = {
+    expr2d = {
     'f6': {'main': f6, 'derivative': f6Der, 'hessian': f6Hessian,
            'params': {'dim': 2, 'z0': pr.z0f6, 'v0': pr.v0D2}},
     'f7': {'main': f7, 'derivative': f7Der, 'hessian': f7Hessian,
@@ -69,7 +75,7 @@ expr2d = {
 }
 
 # 3D functions experiments
-expr3d = {
+    expr3d = {
     'f12': {'main': f12, 'derivative': f12Der, 'hessian': f12Hessian,
             'params': {'dim': 3, 'z0': pr.z0f12, 'v0': pr.v0D3}},
         'f22': {'main': f22, 'derivative': f22Der, 'hessian': f22Hessian,
@@ -77,19 +83,19 @@ expr3d = {
 }
 
 # 4D functions experiments
-expr4d = {
+    expr4d = {
     'f10': {'main': f10, 'derivative': f10Der, 'hessian': f10Hessian,
             'params': {'dim': 4, 'z0': pr.z0f10, 'v0': pr.v0D4}}
 }
 
 ### All cost functions
-all_expr = {}
-for f in [expr1d, expr2d, expr3d, expr4d]:
-    all_expr.update(f)
+    all_expr = {}
+    for f in [expr1d, expr2d, expr3d, expr4d]:
+              all_expr.update(f)
 
 ### List of experiments to be done
 # Please see detailed initial points of each experiment in params.py
-exprList = [
+    exprList = [
      #'f1',  # f(t)=t^{1+gamma }, where 0<gamma <1.
      #'f2',  # f(t)=|t|^(gamma), where 0< gamma <1
      #'f3',  # f3(x)=e^{-1/x^2}
@@ -121,17 +127,21 @@ exprList = [
 ]
 
 ####### Normal GD or NAG
-mode = 'gd'  # 'gd': normal Gradient Descent, 'nag': Nesterov Momentum
+    mode = 'gd'  # 'gd': normal Gradient Descent, 'nag': Nesterov Momentum
 #mode = 'nag'  # 'gd': normal Gradient Descent, 'nag': Nesterov Momentum
 
 
 ####### Expriments
-for f in exprList:
-    print('Experiments on function', f)
-    dimN = all_expr[f]['params']['dim']
-    z0 = all_expr[f]['params']['z0']
-    v0 = all_expr[f]['params']['v0']
-    with np.errstate(all="raise"):
-        Experiment(all_expr[f], z0, pr.delta0, pr.alpha, pr.beta, pr.delta0N, pr.NIterate, mode, pr.gamma0, v0,
+    for f in exprList:
+        print('Experiments on function', f)
+        dimN = all_expr[f]['params']['dim']
+        z0 = all_expr[f]['params']['z0']
+        v0 = all_expr[f]['params']['v0']
+        with np.errstate(all="raise"):
+            Experiment(all_expr[f], z0, pr.delta0, pr.alpha, pr.beta, pr.delta0N, pr.NIterate, mode, pr.gamma0, v0,
                    pr.stopCriterion, pr.rtol, pr.atol,
                    dimN, pr.n1, pr.n2, pr.p, pr.deltaMin, pr.deltaMax, pr.nn, pr.verbose)
+
+
+if __name__ == "__main__":
+    main()
