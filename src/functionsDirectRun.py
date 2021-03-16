@@ -9,7 +9,9 @@ import scipy.special as scisp
 from scipy.optimize import fmin_bfgs
 import algopy
 from algopy import UTPM, exp
-from utils import *
+from utils import UnboundedLR, CheckCriticalType, L2Norm2, ArmijoCondition2, NegativeOrthogonalDecomposition, cutoff
+import time, datetime
+import cubic_reg2, cubic_reg
 
 """Here list all cost functions reported in experiments. 
 Details for each function, its gradient and Hessian, as well as eigenvalues of the Hessian
@@ -18,15 +20,17 @@ Details for each function, its gradient and Hessian, as well as eigenvalues of t
 #### Importing parameters for functions
 
 gamma = pr.gamma
-a = pr.a
-b = pr.b
-c6 = pr.c6
-c9 = pr.c9
-coef = pr.coef
+a     = pr.a
+b     = pr.b
+c6    = pr.c6
+c9    = pr.c9
+coef  = pr.coef
 sign1 = pr.sign1
 sign2 = pr.sign2
-ep = pr.ep
-D=pr.D
+ep    = pr.ep
+atol  = pr.atol
+rtol  = pr.rtol
+D     = pr.D
 
 ######### Function f1 ##############
 ### We look at the function f(t)=t^{1+gamma }, where 0<gamma <1.
@@ -713,10 +717,13 @@ def f25Hessian(z):
 def f26(z):
     onesvector=np.full(D,1,dtype=np.float128)
     zshift=np.full(D,0,dtype=np.float128)
+    zsquare=np.full(D,0,dtype=np.float128)
     for i in range(D-1):
         zshift[i]=z[i+1]
+    for i in range(D-1):
+        zsquare[i]=z[i]*z[i]
     z1=z-onesvector
-    tmp=np.sum(100*((zshift-z)**2)+z1**2)-100*(z[D-1]**2)-z1[D-1]**2
+    tmp=np.sum(100*((zshift-zsquare)**2)+z1**2)
     return tmp
 
 
@@ -991,37 +998,14 @@ def f38Hessian(z):
 
 
 
-################
-
-#z00=np.array([-32+random()*64 for _ in range(D)])
-#z00=np.array([23.49261912, -13.86471849])
-
-#print(z00)
-#print(f23(z00))
-#print(f23Der(z00))
-#print(f23Hessian(z00))
-
-#print(f23(z00).dtype)
-#print(type(f23(z00)))
-
-
-#print(f23Der(z00).dtype)
-#print(type(f23Der(z00)))
-
-
-
-
-
 
 #Newton's method:
-def NewtonMethod(f,fDer, z00_old, NIterate,fHessian,dimN,verbose ):
-    print("0.Newton's method:")
 
+def NewtonMethod(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose, stopCriterion):
     z00=z00_old
-    print(z00)
 
+    time0=time.time()
     for m in range(NIterate):
-        #print("Iteration =",m)
         tmp, w = fHessian(z00)
         Der=fDer(z00)
         if dimN == 1:
@@ -1035,26 +1019,31 @@ def NewtonMethod(f,fDer, z00_old, NIterate,fHessian,dimN,verbose ):
     
         z00 = z00 - gn
         if verbose:
-            print(z00)
+            print(f(z00))
 
-    print(z00)
-    print(f(z00))
-    print(fDer(z00))
+            
+        if stopCriterion == 0:
+            if (L2Norm2(Der, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
+
     return
 
 #Random Newton's method:
 
-def RandomNewtonMethod(f, fDer, fHessian,z00_old,NIterate,  dimN,verbose):
+def RandomNewtonMethod(f, fDer, fHessian, z00_old, NIterate, dimN, verbose, stopCriterion):
 
     print("1.Random Newton's method:")
 
     z00=z00_old
-    print(z00)
+    #print(z00)
 
     minLR = 0
     maxLR = 2
 
-
+    time0=time.time()
     for m in range(NIterate):
 
         delta = minLR + random() * (maxLR - minLR)
@@ -1071,24 +1060,29 @@ def RandomNewtonMethod(f, fDer, fHessian,z00_old,NIterate,  dimN,verbose):
     
         z00 = z00 - gn
         if verbose:
-            print(z00)
-
-    print(z00)
-    print(f(z00))
-    print(fDer(z00))
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(Der, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
+ 
     return
     
     
 #NewQNewton
 
-def NewQNewton(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose):
+def NewQNewton(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose,stopCriterion):
 
     print("2. New Q Newton's method:")
 
     z00=z00_old
     delta=1
-
-    print(z00)
+    time0=time.time()
+    #print(z00)
     for m in range(NIterate):
         #print("Iteration=",m)
         tmp, w=fHessian(z00)
@@ -1115,26 +1109,32 @@ def NewQNewton(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose):
             #print(HessInv)
             gn = np.matmul(Der, HessInv)
             gn=NegativeOrthogonalDecomposition(HessTr,gn,dimN)
+            
     
         z00 = z00 - gn
         if verbose:
-            print(z00)
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(Der, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
 
-    print(z00)
-    print(f(z00))
-    print(fDer(z00))
     return
     
     
     
 #Random New Q Newton's method
 
-def RandomNewQNewton(f, fDer, fHessian, z00_old, NIterate, dimN, verbose):
+def RandomNewQNewton(f, fDer, z00_old, fHessian, NIterate, dimN, verbose, stopCriterion):
 
     print("3. Random New Q Newton's method:")
     z00=z00_old
-    print(z00)
-
+    #print(z00)
+    time0=time.time()
     for m in range(NIterate):
         tmp, w = fHessian(z00)
         Der=fDer(z00)
@@ -1157,32 +1157,73 @@ def RandomNewQNewton(f, fDer, fHessian, z00_old, NIterate, dimN, verbose):
     
         z00 = z00 - gn
         if verbose:
-            print(z00)
-
-    print(z00)
-    print(f(z00))
-    print(fDer(z00))
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(Der, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
+    #print(z00)
+    #print(f(z00))
+    #print(fDer(z00))
     return
+
 #BFGS
-def BFGS(f, fDer, NIterate, z00_old):
+
+def BFGS(f, fDer, z00_old,NIterate):
 
     print("4. BFGS")
     z00=z00_old
-    print(z00)
-
+    #print(z00)
+    time0=time.time()
     xopt=fmin_bfgs(f, z00,fprime=fDer,maxiter=NIterate,gtol=pr.rtol)
-    print(xopt)
+    #xopt=fmin_bfgs(f, z00,fprime=fDer,maxiter=NIterate,gtol=pr.rtol, retall=True)
+    time1=time.time()
+    print("time=",time1-time0)
+    #print(xopt)
+    print("function value=",f(xopt))
+    return
+
+#Adaptive cubic regularisation
+
+def AdaptiveCubicRegularisation(f,  z00_old):
+
+    print("7. Adaptive Cubic Regularisation")
+    z00= z00_old
+    #print(z00)
+    time0=time.time()
+    
+    #cr=cubic_reg.AdaptiveCubicReg(z00, f=f,gradient=None, hessian=None,hessian_update_method='exact', conv_tol=rtol)
+    #xopt, intermediate_points,  n_iter, flag=cr.adaptive_cubic_reg()
+    
+    cr2=cubic_reg2.AdaptiveCubicReg(z00, f=f,gradient=None, hessian=None,hessian_update_method='exact', conv_tol=rtol)
+    xopt, intermediate_points, intermediate_function_values,  n_iter, flag=cr2.adaptive_cubic_reg()
+    
+    time1=time.time()
+    print("time=",time1-time0)
+    print("number of iterates=", n_iter)
+    #print("optimal point=", xopt)
+    #print("function value=", f(xopt))
+    print("function values of intermediate points=", intermediate_function_values)
 
     return
 
+
+
+
 #Backtraking Gradient Descent
 
-def BacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose):
+def BacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose, stopCriterion):
 
     print("5. Backtracking Gradient Descent")
 
     z00=z00_old
-    print(z00)
+    #print(z00)
+
+    time0=time.time()
     delta0=pr.delta0
     alpha=pr.alpha
     beta=pr.beta
@@ -1209,34 +1250,189 @@ def BacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose):
         gn = delta * fDer(z00)
         z00 = z00 - gn
         if verbose:
-            print(z00)
-    
-    print(z00)
-    print(f(z00))
-    print(fDer(z00))
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(g_x, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
+    #print(z00)
+    #print(f(z00))
+    #print(fDer(z00))
     return
+
+
+#Two-way Backtracking
+
+def TwoWayBacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose, stopCriterion):
+    print("8. Two-way Backtracking GD")
+    
+    z00=z00_old
+    
+    
+    time0=time.time()
+    delta0=pr.delta0
+    alpha=pr.alpha
+    beta=pr.beta
+    
+    
+    
+    lr_pure = [delta0]
+    productGraph=[]
+    
+
+    print("Number of maximum iterates:", NIterate, "; But note that the number of actual iterates may be much smaller")
+
+    for m in range(NIterate):
+        delta = lr_pure[-1]
+        #    delta_tmp = delta
+        x = z00
+        f_x = f(x)
+        g_x = fDer(x)
+        gx_norm = L2Norm2(g_x, dimN)
+        g_xx, w=fHessian(x)
+        gxx_norm=math.sqrt(L2Norm2(g_xx, dimN))
+        #x_prev = x
+        x_check = x - delta * g_x
+        check = f(x_check) - f_x + alpha * delta * gx_norm
+        count = 0
+        
+        #    if avoid == 0:
+        if check > 0:
+            while check > 0:  # and delta > 1e-6:
+                count += 1;
+                delta = delta * beta  # rescale delta
+                #x_prev = x_check
+                x_check = x - delta * g_x
+                check = f(x_check) - f_x + alpha * delta * gx_norm
+        elif check < 0:
+            while check < 0 and delta <= delta0:
+                count += 1
+                delta = delta / beta  # rescale delta
+                x_check = x - delta * g_x
+                check = f(x - delta * g_x) - f_x + alpha * delta * gx_norm
+            delta = delta * beta
+
+        lr_pure.append(delta)
+        #productGraph.append(delta*gxx_norm)
+        
+        gn = delta * fDer(z00)
+        z00 = z00 - gn
+        if verbose:
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(g_x, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
+    #print(z00)
+    #print(f(z00))
+    #print(fDer(z00))
+    return
+
+
+#Unbounded Two-way Backtracking GD
+
+def UnboundedTwoWayBacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose, stopCriterion):
+    print("9. Unbounded Two-way Backtracking GD")
+    
+    z00=z00_old
+    
+    
+    time0=time.time()
+    delta0=pr.delta0
+    alpha=pr.alpha
+    beta=pr.beta
+    
+    
+    
+    lr_pure = [delta0]
+    productGraph=[]
+    
+
+    print("Number of maximum iterates:", NIterate, "; But note that the number of actual iterates may be much smaller")
+
+    for m in range(NIterate):
+        delta = lr_pure[-1]
+        #    delta_tmp = delta
+        x = z00
+        f_x = f(x)
+        g_x = fDer(x)
+        gx_norm = L2Norm2(g_x, dimN)
+        gx_normSquareRoot=math.sqrt(gx_norm)
+        g_xx, w=fHessian(x)
+        gxx_norm=math.sqrt(L2Norm2(g_xx, dimN))
+        #x_prev = x
+        x_check = x - delta * g_x
+        check = f(x_check) - f_x + alpha * delta * gx_norm
+        count = 0
+        
+        #    if avoid == 0:
+        if check > 0:
+            while check > 0:  # and delta > 1e-6:
+                count += 1;
+                delta = delta * beta  # rescale delta
+                #x_prev = x_check
+                x_check = x - delta * g_x
+                check = f(x_check) - f_x + alpha * delta * gx_norm
+        elif check < 0:
+            while check < 0 and delta <= UnboundedLR(gx_normSquareRoot,1e+100, delta0):
+                count += 1
+                delta = delta / beta  # rescale delta
+                x_check = x - delta * g_x
+                check = f(x - delta * g_x) - f_x + alpha * delta * gx_norm
+            delta = delta * beta
+
+        lr_pure.append(delta)
+        #productGraph.append(delta*gxx_norm)
+        
+        gn = delta * fDer(z00)
+        z00 = z00 - gn
+        if verbose:
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(g_x, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
+    #print(z00)
+    #print(f(z00))
+    #print(fDer(z00))
+    flag=0
+    for i in range(len(lr_pure)):
+        if delta0<lr_pure[i]:
+            flag+=1
+    print("Number of learning rates bigger than \delta _0=", flag)
+    return
+
+
+
 #Inertial Newton's method
 
-def InertialNewtonM(f, fDer, fHessian, z00_old, NIterate, dimN, verbose):
+def InertialNewtonM(f, fDer, z00_old, NIterate, dimN, verbose, stopCriterion):
     print("6. Inertial Newton's method")
 
     z00=z00_old
 
-    print(z00)
+    #print(z00)
 
     alpha1 = 0.5
 
     beta1 = 0.1
 
     lambda1 = (1/beta1) -alpha1
-
-
-
     psin=np.array([-1+random()*2 for _ in range(dimN)])
 
-
-
-
+    time0=time.time()
 
 
     for m in range(NIterate):
@@ -1251,66 +1447,73 @@ def InertialNewtonM(f, fDer, fHessian, z00_old, NIterate, dimN, verbose):
 
         psin=psin+gamman*(lambda1*z00-(1/beta1)*psin)
         if verbose:
-            print(z00)
-    print(z00)
-    print(f(z00))
-    print(fDer(z00))
+            print(f(z00))
+            #print(z00)
+            
+        if stopCriterion == 0:
+            if (L2Norm2(gn, dimN) < atol) :  # stop when meet the relative and absolute tolerances
+                break
+    time1=time.time()
+    print("time=",time1-time0)
+    print("m=", m)
     return
     
 
 def main():
-    D=2
-    dimN=D
-    bound=5
-    verbose=False
-    NIterate=10
-    #z00_old=np.array([-bound+random()*2*bound for _ in range(dimN)])
-    z00_old=np.array([1.02183524, 0.13979978])
 
+    f=f38
+    fDer=f38Der
+    fHessian=f38Hessian
+    verbose=True
+    stopCriterion=1
+
+    #verbose=False
+    #stopCriterion=0
+
+    NIterate = 1
+    #NIterate=10000
+
+    #z00_old=np.array([-1+np.random.rand()*2*1 for _ in range(dimN)])
+
+    #z00_old=np.array([-2.903534+0.3, -2.903534-0.8])
+
+    #z00_old=np.array([0.26010457, -10.91803423, 2.98112261, -15.95313456,  -2.78250859, -0.77467653,  -2.02113182,   9.10887908, -10.45035903,  11.94967756, -1.24926898,  -2.13950642,   7.20804014,   1.0291962,    0.06391697, 2.71562242, -11.41484204,  10.59539405,  12.95776531,  11.13258434,
+    #  8.16230421, -17.21206152,  -4.0493811,  -19.69634293,  14.25263482, 3.19319406,  11.45059677,  18.89542157,  19.44495031,  -3.66913821])
+
+    z00_old = np.array([-0.15359941, -0.59005902, 0.45366905, -0.94873933,  0.52152264, -0.02738085,0.17599868,  0.36736119,  0.30861332,  0.90622707,  0.10472251, -0.74494753, 0.67337336, -0.21703503, -0.17819413, -0.14024491, -0.93297061,  0.63585997, -0.34774991, -0.02915787, -0.17318147, -0.04669807,  0.03478713, -0.21959983,
+    0.54296245,  0.71978214, -0.50010954, -0.69673303,  0.583932,   -0.38138978, -0.85625076,   0.20134663, -0.71309977, -0.61278167,  0.86638939,  0.45731164, -0.32956812,  0.64553452, -0.89968231,  0.79641384,  0.44785232,  0.38489415, -0.51330669,  0.81273771, -0.54611157, -0.87101225, -0.72997209, -0.16185048, 0.38042508, -0.63330049,  0.71930612, -0.33714448, -0.24835364, -0.78859559,
+    -0.07531072,  0.19087508, -0.95964552, -0.72759281,  0.13079216,  0.6982817, 0.54827214,  0.70860856, -0.51314115, -0.54742142,  0.73180924, -0.28666226, 0.89588517,  0.35797497, -0.21406766, -0.05558283,  0.89932563, -0.16479757, -0.29753867,  0.5090385,   0.95156811,  0.8701501,   0.62499125, -0.22215331, 0.8355082,  -0.83695582, -0.96214862, -0.22495384, -0.30823426,  0.55635375,
+    0.38262606, -0.60688932, -0.04303575,  0.59260985,  0.5887739,  -0.00570958, -0.502354, 0.50740011, -0.08916369,  0.62672251,  0.13993309, -0.92816931, 0.50047918,  0.856543,    0.99560466, -0.44254687])
+
+    dimN = z00_old.shape[0]
     print("Number of iterates=", NIterate)
 
     print("initial point=", z00_old)
 
     print("the function is", "f38")
-    f=f38
-    # calcutale derivation of the 38th function
-    fDer=f38Der
-    # calculate Hessinan matrix
-    fHessian=f38Hessian
-    # Newton method
+
+
     print("*"*30,"the Newton method","*"*30)
-    NewtonMethod(f,fDer, z00_old, NIterate,fHessian,dimN,verbose )
+    NewtonMethod(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose, stopCriterion)
     # RandomNewton method
     print("*"*30,"the RandomNewton method","*"*30)
-    RandomNewtonMethod(f, fDer, fHessian,z00_old,NIterate,  dimN,verbose)
+    RandomNewtonMethod(f, fDer, fHessian, z00_old, NIterate, dimN, verbose, stopCriterion)
     # New Q-Newton method
     print("*"*30,"the New Q-Newton method","*"*30)
-    NewQNewton(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose)
+    NewQNewton(f,fDer,fHessian,z00_old ,NIterate,dimN,verbose,stopCriterion)
     # Random New Q-Newton method
     print("*"*30,"the Random New Q-Newton method","*"*30)
-    RandomNewQNewton(f, fDer, fHessian, z00_old, NIterate, dimN, verbose)
+    RandomNewQNewton(f, fDer, z00_old, fHessian, NIterate, dimN, verbose, stopCriterion)
     # Back tracking GD method
     print("*"*30,"the Back tracking GD method","*"*30)
-    BacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose)
+    BacktrackingGD(f, fDer, z00_old, fHessian, NIterate, dimN, verbose, stopCriterion)
     # BFGS method
     print("*"*30,"the BFGS method","*"*30)
-    BFGS(f, fDer, NIterate, z00_old)
+    BFGS(f, fDer, z00_old,NIterate)
     # inertial Newton method
     print("*"*30,"the inertial Newton method","*"*30)
-    InertialNewtonM(f, fDer, fHessian, z00_old, NIterate, dimN, verbose)
+    InertialNewtonM(f, fDer, z00_old, NIterate, dimN, verbose, stopCriterion)
 
 if __name__ == '__main__':
-  main()
-
-
-#f23G=nd.Gradient(f24)
-#f23H=nd.Hessian(f24)
-#print(f23G(z00))
-#print(f23H(z00))
-
-#z00=np.array([1,1,1])
-#print(z00)
-#print(f26(z00))
-#print(f26Der(z00))
-#print(f26Hessian(z00))
+    main()
 
