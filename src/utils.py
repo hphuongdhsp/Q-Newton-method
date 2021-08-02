@@ -81,16 +81,39 @@ def NegativeOrthogonalDecomposition(A,x,dimN):
 ## This is a functions which is not to big. We also want it to be 0 at 0, and no where else. It is used in New Q-Newton's method
 
 def cutoff(t):
-    alp=0.51
-    #if t>1:
-    #    tmp=1
-    #else:
-    #    tmp=t
-    tmp=t**alp
+    alp=2
+    if t>1:
+        tmp=1
+    else:
+        tmp=t**alp
+    
     return tmp
 
 
  
  
-###########
+########### Distance function: to use in Local New Q-Newton method. This is the distance from the point x_n to the set where the function is singular. We use this to put a damping factor in the update. You should change this distance depending on your cost function.
 
+def dist(z):
+    
+    #x,y=z
+    #tmp1=abs(x)
+    #tmp2=abs(1-x)
+    #tmp=min(tmp1,tmp2)
+    
+    #x,y=z
+    #tmp1=abs(x)
+    #tmp2=abs(y)
+    #tmp=min(tmp1,tmp2)
+    
+    #x,y=z
+    #tmp=abs(x)
+    
+    
+    tmp=abs(z)
+    return tmp
+
+
+def constraintChect(z):
+    tmp=f46Constraint(z)
+    return tmp

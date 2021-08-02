@@ -41,11 +41,14 @@ a = 1  # parameter for Rosenbrock function
 b = 100  # parameter for Rosenbrock function
 c6 = 1  # parameter for function f6
 c9 = 1  # parameter for function f9
-gamma =0.3  # parameter for cost functions f1 and f2
+gamma =1/3  # parameter for cost functions f1 and f2
 coef = 0  # parameter for function f11
 sign1 = 1  # parameter for function f12
 sign2 = 0  # parameter for function f12
 ep = 1e-5  # parameter for functions f11, f12
+
+thr=1e-20
+
 
 #### Initial value for v0 in NAG
 v0D1 = 1.385685437141149e-05  # 1 dimensional functions
@@ -107,7 +110,7 @@ z0f23=np.array([random() for _ in range(2)])
 
 #z0f24=np.array([-32+random()*64 for _ in range(D)])
 
-D=2
+D=3
 v0D=np.array([random() for _ in range(D)])
 
 bound=1
@@ -125,11 +128,5 @@ METHODS = [
            "INERTIAL NEWTON METHOD",
            "BFGS",
            #"LOCAL NEW Q NEWTON METHOD",
-           #"LOCAL NEWTON METHOD"
+           #"LOCAL NEWTON METHOD" 
            ]
-
-#### The next three command lines are just for your convenience when you want to monitor should errors occur. Just delete the "#" and rerun the main.py file.
-
-NIterate =50
-#stopCriterion =2
-#verbose = True

@@ -12,6 +12,15 @@ Truong Trung Tuyen, Tat Dat To, Tuan Hang Nguyen, Thu Hang Nguyen, Hoang Phuong 
 scipy
 algopy
 numdifftools
+matplotlib
+```
+
+
+To install the above package
+
+```
+pip install -r requirements.txt
+
 ```
 ## Doing experiments
 
@@ -28,4 +37,5 @@ To test more examples (with Backtracking GD, in addition to Newton's method and 
 ```bash 
 
 $ python src/functionsDirectRun.py
+
 ```

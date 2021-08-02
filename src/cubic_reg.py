@@ -161,6 +161,7 @@ class Algorithm:
                 return True
             else:
                 return False
+            
         #elif self.conv_criterion == 'nesterov':
         #    if max(np.sqrt(2/(self.L+M)*np.linalg.norm(self.grad_x)), -2/(2L+M)*lambda_min) <= self.conv_tol:
         #        return True
